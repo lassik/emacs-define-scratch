@@ -18,30 +18,26 @@
 
 ;;; Code:
 
-(defun define-scratch--buffer-base-name (mode)
-  "Internal function to make up a name for a MODE buffer."
-  (let ((name (symbol-name mode)))
-    (format "*%s-scratch*"
-            (save-match-data (replace-regexp-in-string "-mode$" "" name t)))))
-
-(defun define-scratch--get-or-create-blank-buffer (name)
-  "Internal function to get a (possibly numbered) scratch buffer for NAME."
+(defun define-scratch--get-or-create-blank-buffer (base-name)
+  "Internal function to generate a unique buffer from BASE-NAME."
   (let ((result nil)
         (number 1)
         (max-number 100)
-        (name-and-number name))
+        (name-and-number base-name))
     (while (and (not result) (<= number max-number))
       (let ((buffer (get-buffer-create name-and-number)))
         (if (and buffer (zerop (buffer-size buffer)))
             (setq result buffer)
           (setq number (1+ number)
-                name-and-number (format "%s<%d>" name number)))))
+                name-and-number (format "%s<%d>" base-name number)))))
     (or result (error "Too many scratch buffers"))))
 
-(defun define-scratch--switch-to-buffer (name mode minor-modes)
+(defun define-scratch--switch-to-buffer (name base-name mode minor-modes)
   "Internal function to get, create, and switch to a scratch buffer.
 
-NAME is a template for the buffer name.
+NAME, when non-nil, is an explicit buffer name to use.
+
+Otherwise BASE-NAME is a template for the buffer name.
 
 MODE and MINOR-MODES are the modes to use in the buffer."
   (let ((buffer
@@ -52,8 +48,7 @@ MODE and MINOR-MODES are the modes to use in the buffer."
                   home-directory))
            (if name
                (get-buffer-create name)
-             (define-scratch--get-or-create-blank-buffer
-               (define-scratch--buffer-base-name mode))))))
+             (define-scratch--get-or-create-blank-buffer base-name)))))
     (switch-to-buffer buffer)
     (unless (eq major-mode mode)
       (funcall mode)
@@ -61,28 +56,27 @@ MODE and MINOR-MODES are the modes to use in the buffer."
         (funcall minor-mode)))
     buffer))
 
-(defun define-scratch--interactive (mode)
-  "Internal function to get interactive arg for scratch buffer command.
-
-MODE is the major mode for the buffer."
-  (list (and current-prefix-arg
-             (read-from-minibuffer
-              "Name of new scratch buffer: "
-              (define-scratch--buffer-base-name mode)))))
-
 (defmacro define-scratch (scratch-command mode &rest minor-modes)
   "Define SCRATCH-COMMAND as a command to create a scratch buffer.
 
 MODE is the major mode that buffers created with this command will use.
 
 MINOR-MODES axre extra minor modes (if any) to enable."
-  `(defun ,scratch-command (&optional name)
-     ,(format "Create a new scratch buffer in %s.
-
-With a prefix argument, prompt for buffer NAME."
-              mode)
-     (interactive (define-scratch--interactive ',mode))
-     (define-scratch--switch-to-buffer name ',mode ',minor-modes)))
+  (let ((base-name (format "*%s*" scratch-command)))
+    `(defun ,scratch-command (&optional name)
+       ,(concat (format "Create a new scratch buffer in %s.\n" mode)
+                "\n"
+                "With a prefix argument, prompt for buffer NAME.\n")
+       (interactive
+        (list (and current-prefix-arg
+                   (read-from-minibuffer
+                    "Name of new scratch buffer: "
+                    ,base-name))))
+       (define-scratch--switch-to-buffer
+         name
+         ,base-name
+         ',mode
+         ',minor-modes))))
 
 (provide 'define-scratch)
 
