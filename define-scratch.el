@@ -11,10 +11,11 @@
 
 ;;; Commentary:
 
-;; Define new commands to make scratch buffers. Examples:
+;; Define new commands to make scratch buffers. Example:
 
-;;     (define-scratch scheme-scratch scheme-mode)
-;;     (define-scratch text-scratch text-mode auto-fill-mode)
+;;     (when (require 'define-scratch nil t)
+;;       (define-scratch scheme-scratch scheme-mode)
+;;       (define-scratch text-scratch text-mode auto-fill-mode))
 
 ;;; Code:
 
