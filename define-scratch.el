@@ -44,14 +44,22 @@
 NAME is a template for the buffer name.
 
 MODE and MINOR-MODES are the modes to use in the buffer."
-  (let ((name (or name (define-scratch--buffer-base-name mode))))
-    (let ((default-directory (expand-file-name (file-name-as-directory "~"))))
-      (switch-to-buffer (define-scratch--get-or-create-blank-buffer name))))
-  (unless (eq major-mode mode)
-    (funcall mode)
-    (dolist (minor-mode minor-modes)
-      (funcall minor-mode)))
-  (current-buffer))
+  (let ((buffer
+         (let* ((home-directory
+                 (expand-file-name
+                  (file-name-as-directory "~")))
+                (default-directory
+                  home-directory))
+           (if name
+               (get-buffer-create name)
+             (define-scratch--get-or-create-blank-buffer
+               (define-scratch--buffer-base-name mode))))))
+    (switch-to-buffer buffer)
+    (unless (eq major-mode mode)
+      (funcall mode)
+      (dolist (minor-mode minor-modes)
+        (funcall minor-mode)))
+    buffer))
 
 (defun define-scratch--interactive (mode)
   "Internal function to get interactive arg for scratch buffer command.
