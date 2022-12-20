@@ -62,7 +62,7 @@ MODE and MINOR-MODES are the modes to use in the buffer."
 
 MODE is the major mode that buffers created with this command will use.
 
-MINOR-MODES axre extra minor modes (if any) to enable."
+MINOR-MODES are extra minor modes (if any) to enable."
   (let ((base-name (format "*%s*" scratch-command)))
     `(defun ,scratch-command (&optional name)
        ,(concat (format "Create a new scratch buffer in %s.\n" mode)
