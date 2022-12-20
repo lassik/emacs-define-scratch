@@ -21,10 +21,10 @@
 
 (defun define-scratch--get-or-create-blank-buffer (base-name)
   "Internal function to generate a unique buffer from BASE-NAME."
-  (let ((result nil)
+  (let ((name base-name)
         (number 1)
         (max-number 100)
-        (name base-name))
+        (result nil))
     (while (and (not result) (<= number max-number))
       (let ((buffer (get-buffer-create name)))
         (if (and buffer (zerop (buffer-size buffer)))
