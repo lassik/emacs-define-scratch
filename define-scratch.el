@@ -20,7 +20,9 @@
 ;;; Code:
 
 (defun define-scratch--get-or-create-blank-buffer (base-name)
-  "Internal function to generate a unique buffer from BASE-NAME."
+  "Internal function to generate a unique buffer from BASE-NAME.
+
+Like `generate-new-buffer' but re-uses blank buffers."
   (let ((name base-name)
         (number 1)
         (max-number 100)
